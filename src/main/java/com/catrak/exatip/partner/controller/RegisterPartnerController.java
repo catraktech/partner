@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.catrak.exatip.commonlib.constant.ResponseMessage;
 import com.catrak.exatip.commonlib.dto.JsonResponseDTO;
 import com.catrak.exatip.commonlib.entity.PartnerInfo;
-import com.catrak.exatip.partner.dto.RegisterPartnerDTO;
 import com.catrak.exatip.partner.exception.PartnerException;
 import com.catrak.exatip.partner.service.RegisterPartnerService;
 import com.catrak.exatip.partner.util.Utility;
@@ -43,8 +42,13 @@ public class RegisterPartnerController {
     @Autowired
     private Utility utility;
 
-    @ApiOperation(value = "Register partner with CATrak", nickname = "register", notes = "partner registration with catrak", response = RegisterPartnerDTO.class, tags = {})
-    @ApiResponses(value = { @ApiResponse(code = 201, message = "Created", response = RegisterPartnerDTO.class),
+    @PostMapping("/test")
+    public ResponseEntity<?> test() {
+        return new ResponseEntity<>("Hello JWT", HttpStatus.OK);
+    }
+
+    @ApiOperation(value = "Register partner with CATrak", nickname = "register", notes = "partner registration with catrak", response = String.class, tags = {})
+    @ApiResponses(value = { @ApiResponse(code = 201, message = "Created", response = String.class),
             @ApiResponse(code = 400, message = "Bad Request"), @ApiResponse(code = 401, message = "Unauthorized"),
             @ApiResponse(code = 403, message = "Forbidden"),
             @ApiResponse(code = 500, message = "Internal Server Error") })
@@ -99,13 +103,27 @@ public class RegisterPartnerController {
             throw new PartnerException("Enter valid userName");
         }
 
+        partnerInfo.setUserName(utility.userNameLengthCheck(partnerInfo.getUserName()));
+        if (partnerInfo.getUserName() == null) {
+            throw new PartnerException("UserName cannot be less than 3 characters");
+        }
+
         partnerInfo.setPassword(utility.trimWhiteSpace(partnerInfo.getPassword()));
         if (partnerInfo.getPassword() == null) {
             throw new PartnerException("Enter valid password");
         }
 
+        partnerInfo.setPassword(utility.userPaswordCheck(partnerInfo.getPassword()));
+        if (partnerInfo.getPassword() == null) {
+            throw new PartnerException("Password cannot be less than 8 characters");
+        }
+
         if (!utility.hasMobileNumberValid(partnerInfo.getContactNumber())) {
             throw new PartnerException("Invalid mobile number");
+        }
+
+        if (!utility.hasAllDigits(partnerInfo.getContactNumber())) {
+            throw new PartnerException("Mobile number must contains digits only");
         }
 
         if (!utility.isEmailValidate(partnerInfo.getEmail())) {

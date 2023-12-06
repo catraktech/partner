@@ -40,7 +40,7 @@ public class Utility {
     }
 
     public boolean hasMobileNumberValid(String string) {
-        return string.matches("^[1-9][0-9]{7,14}$");
+        return string.matches("^[1-9][0-9]{11,12}$");
     }
 
     public boolean isEmailValidate(String string) {
@@ -50,5 +50,13 @@ public class Utility {
 
     public String trimWhiteSpace(String string) {
         return string.trim().isEmpty() ? null : string.trim();
+    }
+
+    public String userNameLengthCheck(String string) {
+        return string.length() >= 3 ? string : null;
+    }
+
+    public String userPaswordCheck(String string) {
+        return string.length() >= 8 ? string : null;
     }
 }
