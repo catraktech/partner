@@ -43,7 +43,7 @@ public class SecurityConfig {
         http.csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeRequests(auth -> auth.antMatchers("/register").permitAll().antMatchers("/token").permitAll()
-                        .anyRequest().authenticated());
+                        .antMatchers("/register/renew").permitAll().anyRequest().authenticated());
         http.addFilterBefore(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
