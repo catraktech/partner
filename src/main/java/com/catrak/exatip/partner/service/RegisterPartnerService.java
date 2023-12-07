@@ -7,4 +7,6 @@ public interface RegisterPartnerService {
 
     PartnerInfo registerPartner(PartnerInfo partnerInfo, String requestUUID) throws PartnerException;
 
+    PartnerInfo renewApiKey(PartnerInfo partnerInfo, String requestUUID) throws PartnerException;
+
 }

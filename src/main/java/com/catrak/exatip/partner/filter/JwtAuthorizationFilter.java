@@ -1,6 +1,8 @@
 package com.catrak.exatip.partner.filter;
 
 import java.io.IOException;
+import java.sql.Timestamp;
+import java.util.Optional;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -15,7 +17,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.catrak.exatip.commonlib.dto.JsonResponseDTO;
-import com.catrak.exatip.partner.util.JwtTokenCreator;
+import com.catrak.exatip.commonlib.entity.PartnerInfo;
+import com.catrak.exatip.partner.repository.PartnerInfoRepository;
+import com.catrak.exatip.partner.util.JwtTokenValidator;
 import com.google.gson.Gson;
 
 import io.jsonwebtoken.ExpiredJwtException;
@@ -26,11 +30,14 @@ import io.jsonwebtoken.security.SignatureException;
 @Component
 public class JwtAuthorizationFilter extends OncePerRequestFilter {
 
-    private final JwtTokenCreator jwtTokenCreator;
+    private final JwtTokenValidator jwtTokenValidator;
 
-    public JwtAuthorizationFilter(JwtTokenCreator jwtTokenCreator) {
+    private final PartnerInfoRepository partnerInfoRepository;
+
+    public JwtAuthorizationFilter(JwtTokenValidator jwtTokenValidator, PartnerInfoRepository partnerInfoRepository) {
         super();
-        this.jwtTokenCreator = jwtTokenCreator;
+        this.jwtTokenValidator = jwtTokenValidator;
+        this.partnerInfoRepository = partnerInfoRepository;
     }
 
     @Override
@@ -39,26 +46,33 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
         String authHeader = request.getHeader("Authorization");
         String token = null;
         String username = null;
-        boolean isExceptionOccured = false;
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             token = authHeader.substring(7);
             try {
-                username = jwtTokenCreator.extractUsername(token);
+                username = jwtTokenValidator.extractUsername(token);
                 if (username != null && SecurityContextHolder.getContext().getAuthentication() == null
-                        && Boolean.TRUE.equals(jwtTokenCreator.validateToken(token))) {
+                        && Boolean.TRUE.equals(jwtTokenValidator.validateToken(token))) {
+                    Optional<PartnerInfo> partnerOptional = partnerInfoRepository.findByUserName(username);
+                    if (!partnerOptional.isPresent()) {
+                        setErrorResponse(HttpStatus.BAD_REQUEST, response, new Exception("Invalid user"));
+                        return;
+                    }
+                    if (partnerOptional.get().getExpirationDateTime()
+                            .before(new Timestamp(System.currentTimeMillis()))) {
+                        setErrorResponse(HttpStatus.BAD_REQUEST, response,
+                                new Exception("api-key expires, please renew the api-key"));
+                        return;
+                    }
                     Authentication authToken = new UsernamePasswordAuthenticationToken(username, "");
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             } catch (MalformedJwtException | ExpiredJwtException | UnsupportedJwtException | IllegalArgumentException
                     | SignatureException ex) {
-                isExceptionOccured = true;
                 setErrorResponse(HttpStatus.BAD_REQUEST, response, ex);
+                return;
             }
         }
-        if (authHeader == null || !isExceptionOccured) {
-            filterChain.doFilter(request, response);
-        }
-
+        filterChain.doFilter(request, response);
     }
 
     public void setErrorResponse(HttpStatus status, HttpServletResponse response, Throwable ex) throws IOException {

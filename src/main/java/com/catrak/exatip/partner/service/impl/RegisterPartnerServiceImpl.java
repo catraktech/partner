@@ -66,4 +66,31 @@ public class RegisterPartnerServiceImpl implements RegisterPartnerService {
         return partnerInfo;
     }
 
+    @Override
+    public PartnerInfo renewApiKey(PartnerInfo partnerInfo, String requestUUID) throws PartnerException {
+
+        log.info("RequestUUID: {} Inside RegisterPartnerServiceImpl renewApiKey", requestUUID);
+
+        Optional<PartnerInfo> partnerOptional = partnerInfoRepository
+                .findByUserNameAndPassword(partnerInfo.getUserName(), partnerInfo.getPassword());
+        if (!partnerOptional.isPresent()) {
+            throw new PartnerException("either username or password is invalid");
+        }
+        partnerInfo = partnerOptional.get();
+
+        partnerInfo.setLastModifiedDatetime(new Timestamp(System.currentTimeMillis()));
+
+        Calendar c = Calendar.getInstance();
+        c.add(Calendar.MONTH, 6);
+        Timestamp expirationTime = new Timestamp(c.getTimeInMillis());
+        partnerInfo.setExpirationDateTime(expirationTime);
+
+        partnerInfo.setApiKey(UUID.randomUUID().toString());
+        partnerInfoRepository.save(partnerInfo);
+
+        log.info("RequestUUID: {} Exit RegisterPartnerServiceImpl renewApiKey", requestUUID);
+
+        return partnerInfo;
+    }
+
 }

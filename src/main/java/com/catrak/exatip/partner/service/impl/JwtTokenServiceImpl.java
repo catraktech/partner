@@ -1,5 +1,6 @@
 package com.catrak.exatip.partner.service.impl;
 
+import java.sql.Timestamp;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -27,11 +28,14 @@ public class JwtTokenServiceImpl implements JwtTokenService {
     @Override
     public String generateToken(String apiKey) throws PartnerException {
         log.info("Inside JwtTokenServiceImpl generateToken");
-        Optional<PartnerInfo> optional = partnerInfoRepository.findByApiKey(apiKey);
-        if (!optional.isPresent()) {
-            throw new PartnerException("Invalid api-key");
+        Optional<PartnerInfo> partnerOptional = partnerInfoRepository.findByApiKey(apiKey);
+        if (!partnerOptional.isPresent()) {
+            throw new PartnerException("invalid api-key");
         }
-        return jwtTokenCreator.generateToken(optional.get().getUserName());
+        if (partnerOptional.get().getExpirationDateTime().before(new Timestamp(System.currentTimeMillis()))) {
+            throw new PartnerException("api-key expires, please renew the api-key");
+        }
+        return jwtTokenCreator.generateToken(partnerOptional.get().getUserName());
     }
 
 }
