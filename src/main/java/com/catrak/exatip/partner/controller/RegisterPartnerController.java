@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.catrak.exatip.commonlib.constant.ResponseMessage;
 import com.catrak.exatip.commonlib.dto.JsonResponseDTO;
 import com.catrak.exatip.commonlib.entity.PartnerInfo;
 import com.catrak.exatip.partner.exception.PartnerException;
@@ -57,39 +56,28 @@ public class RegisterPartnerController {
 
         String requestUUID = UUID.randomUUID().toString();
 
-        try {
-            log.info("RequestUUID: {} Inside RegisterPartnerController registerPartner", requestUUID);
-            Gson g = new Gson();
-            PartnerInfo partnerInfo = g.fromJson(registerPartnerPayload, PartnerInfo.class);
+        log.info("RequestUUID: {} Inside RegisterPartnerController registerPartner", requestUUID);
+        Gson g = new Gson();
+        PartnerInfo partnerInfo = g.fromJson(registerPartnerPayload, PartnerInfo.class);
 
-            StringBuilder validateField = validateMandatoryFields(partnerInfo);
+        StringBuilder validateField = validateMandatoryFields(partnerInfo);
 
-            if (validateField.length() > 0) {
-                return new ResponseEntity<>(
-                        new JsonResponseDTO<>(validateField.toString(), false, JsonResponseDTO.BAD_REQUEST),
-                        HttpStatus.OK);
-            }
-
-            validate(partnerInfo);
-
-            partnerInfo = registerPartnerService.registerPartner(partnerInfo, requestUUID);
-
-            String apiKey = "{" + "\"apiKey\":\"" + partnerInfo.getApiKey() + "\"}";
-
-            String registerPartnerResponse = g.toJson(
-                    new JsonResponseDTO<>(apiKey, "Partner registration is successful", true, JsonResponseDTO.CREATED));
-
-            log.info("RequestUUID: {} Exit RegisterPartnerController registerPartner", requestUUID);
-            return new ResponseEntity<>(registerPartnerResponse, HttpStatus.OK);
-        } catch (PartnerException e) {
-            log.error("RequestUUID: {} exception due to {}", requestUUID, e.getMessage());
-            return new ResponseEntity<>(new JsonResponseDTO<>(e.getMessage(), false, JsonResponseDTO.BAD_REQUEST),
-                    HttpStatus.OK);
-        } catch (Exception e) {
-            log.error("RequestUUID: {} exception due to {}", requestUUID, e.getMessage());
-            return new ResponseEntity<>(new JsonResponseDTO<>(ResponseMessage.INTERNAL_SERVER_ERROR, false,
-                    JsonResponseDTO.INTERNAL_SERVER_ERROR), HttpStatus.OK);
+        if (validateField.length() > 0) {
+            return new ResponseEntity<>(
+                    new JsonResponseDTO<>(validateField.toString(), false, JsonResponseDTO.BAD_REQUEST), HttpStatus.OK);
         }
+
+        validate(partnerInfo);
+
+        partnerInfo = registerPartnerService.registerPartner(partnerInfo, requestUUID);
+
+        String apiKey = "{" + "\"apiKey\":\"" + partnerInfo.getApiKey() + "\"}";
+
+        String registerPartnerResponse = g.toJson(
+                new JsonResponseDTO<>(apiKey, "Partner registration is successful", true, JsonResponseDTO.CREATED));
+
+        log.info("RequestUUID: {} Exit RegisterPartnerController registerPartner", requestUUID);
+        return new ResponseEntity<>(registerPartnerResponse, HttpStatus.OK);
     }
 
     private void validate(PartnerInfo partnerInfo) throws PartnerException {
