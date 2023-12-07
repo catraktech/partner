@@ -17,4 +17,6 @@ public interface PartnerInfoRepository extends JpaRepository<PartnerInfo, Long> 
     Optional<PartnerInfo> findByEmail(String email);
 
     Optional<PartnerInfo> findByUserName(String userName);
+
+    Optional<PartnerInfo> findByApiKey(String apiKey);
 }
