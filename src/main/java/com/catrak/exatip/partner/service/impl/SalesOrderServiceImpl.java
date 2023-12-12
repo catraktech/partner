@@ -197,7 +197,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
                 device.setManufacturer(manufacturer);
                 deviceRepository.save(device);
             } catch (Exception e) {
-                throw new PartnerException("exception due to ");
+                throw new PartnerException(e.getMessage());
             }
         });
     }
