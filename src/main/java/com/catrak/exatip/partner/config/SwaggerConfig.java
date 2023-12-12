@@ -18,4 +18,5 @@ public class SwaggerConfig {
                 .apis(RequestHandlerSelectors.basePackage(PartnerApplication.class.getPackage().getName()))
                 .paths(PathSelectors.any()).build();
     }
+
 }
