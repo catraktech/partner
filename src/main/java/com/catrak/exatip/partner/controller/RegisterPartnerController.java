@@ -47,7 +47,8 @@ public class RegisterPartnerController {
             @ApiResponse(code = 403, message = "Forbidden"),
             @ApiResponse(code = 500, message = "Internal Server Error") })
     @PostMapping("")
-    public ResponseEntity<?> registerPartner(@ApiParam(value = "") @Valid @RequestBody String registerPartnerPayload) {
+    public ResponseEntity<?> registerPartner(
+            @ApiParam(value = "registerPartnerPayload") @Valid @RequestBody String registerPartnerPayload) {
 
         String requestUUID = UUID.randomUUID().toString();
 
@@ -81,7 +82,8 @@ public class RegisterPartnerController {
             @ApiResponse(code = 403, message = "Forbidden"),
             @ApiResponse(code = 500, message = "Internal Server Error") })
     @PostMapping("/renew")
-    public ResponseEntity<?> renewApiKey(@ApiParam(value = "") @Valid @RequestBody String renewApiKeyPayload) {
+    public ResponseEntity<?> renewApiKey(
+            @ApiParam(value = "renewApiKeyPayload") @Valid @RequestBody String renewApiKeyPayload) {
 
         String requestUUID = UUID.randomUUID().toString();
 
