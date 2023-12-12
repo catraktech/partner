@@ -85,6 +85,8 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 
         validateDsnExist(salesOrderInfoDTO);
 
+        validateTrackingNumberExist(salesOrderInfoDTO);
+
         Optional<PartnerInfo> partnerOptional = partnerInfoRepository.findByUserName(userName);
 
         if (!partnerOptional.isPresent()) {
@@ -235,6 +237,15 @@ public class SalesOrderServiceImpl implements SalesOrderService {
                 .collect(Collectors.toList());
         if (imeis.stream().anyMatch(imeisFB::contains)) {
             throw new PartnerException("imei already exist");
+        }
+    }
+
+    private void validateTrackingNumberExist(SalesOrderInfoDTO salesOrderInfoDTO) {
+        List<String> trackinNumbers = salesOrderInfoRepository.findAllTrackingNumber();
+        List<String> trackinNumbersFB = salesOrderInfoDTO.getDeviceDetails().stream()
+                .map(DeviceDetail::getTrackingNumber).collect(Collectors.toList());
+        if (trackinNumbers.stream().anyMatch(trackinNumbersFB::contains)) {
+            throw new PartnerException("tracking number already exist");
         }
     }
 

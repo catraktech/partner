@@ -22,4 +22,7 @@ public interface SalesOrderInfoRepository extends JpaRepository<SalesOrderInfo, 
 
     @Query("select serialNumber from SalesOrderInfo soi")
     List<Long> findAllDsn();
+
+    @Query("select trackingNumber from SalesOrderInfo soi")
+    List<String> findAllTrackingNumber();
 }
