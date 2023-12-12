@@ -6,8 +6,6 @@ import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.catrak.exatip.partner.PartnerApplication;
-
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.service.ApiKey;
@@ -23,8 +21,8 @@ public class SwaggerConfig {
     public Docket api() {
         return new Docket(DocumentationType.SWAGGER_2).securityContexts(Arrays.asList(securityContext()))
                 .securitySchemes(Arrays.asList(apiKey())).select()
-                .apis(RequestHandlerSelectors.basePackage(PartnerApplication.class.getPackage().getName()))
-                .paths(PathSelectors.any()).build();
+                .apis(RequestHandlerSelectors.basePackage("com.catrak.exatip.partner")).paths(PathSelectors.any())
+                .build();
     }
 
     private ApiKey apiKey() {

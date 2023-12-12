@@ -107,8 +107,8 @@ public class RegisterPartnerController {
 
         String apiKey = "{" + "\"apiKey\":\"" + partnerInfo.getApiKey() + "\"}";
 
-        String registerPartnerResponse = g.toJson(
-                new JsonResponseDTO<>(apiKey, "api-key successfully renewed", true, JsonResponseDTO.CREATED));
+        String registerPartnerResponse = g
+                .toJson(new JsonResponseDTO<>(apiKey, "Api-key renewed successfully", true, JsonResponseDTO.CREATED));
 
         log.info("RequestUUID: {} Exit RegisterPartnerController renewApiKey", requestUUID);
         return new ResponseEntity<>(registerPartnerResponse, HttpStatus.OK);
