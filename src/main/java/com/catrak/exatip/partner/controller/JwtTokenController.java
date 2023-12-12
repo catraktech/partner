@@ -27,7 +27,7 @@ import io.swagger.annotations.ApiResponses;
 
 @RestController
 @RequestMapping("/token")
-@Api(value = "Custom authentication API used when user tries to login in application using OTP in place of password")
+@Api(value = "partner", description = "the token API")
 public class JwtTokenController {
     private static final Logger log = LoggerFactory.getLogger(JwtTokenController.class);
 
@@ -37,7 +37,7 @@ public class JwtTokenController {
     @Autowired
     private Utility utility;
 
-    @ApiOperation(value = "Provide JWT access token for valid user.", notes = "Valid username and password should be provided by the user.")
+    @ApiOperation(value = "Provide JWT access token for valid user", notes = "API will return valid jwt token with expiry of 24 hours for valid user based on userName and password")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Valid user name and password is provided by user. Application returns valid token with  expiration date and time.", response = OAuth2AccessToken.class),
             @ApiResponse(code = 400, message = "Invalid user name and password is provided by user or it has expired. It is mandatory to provide valid user name along with password other wise application will fail validation."),

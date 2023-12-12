@@ -41,7 +41,7 @@ public class RegisterPartnerController {
     @Autowired
     private Utility utility;
 
-    @ApiOperation(value = "Register partner with CATrak", nickname = "register", notes = "partner registration with catrak", response = String.class, tags = {})
+    @ApiOperation(value = "Register partner with catrak", nickname = "register", notes = "API will register third party system as partner within catrak and return api-key with validity of 6 months", response = String.class, tags = {})
     @ApiResponses(value = { @ApiResponse(code = 201, message = "Created", response = String.class),
             @ApiResponse(code = 400, message = "Bad Request"), @ApiResponse(code = 401, message = "Unauthorized"),
             @ApiResponse(code = 403, message = "Forbidden"),
@@ -75,7 +75,7 @@ public class RegisterPartnerController {
         return new ResponseEntity<>(registerPartnerResponse, HttpStatus.OK);
     }
 
-    @ApiOperation(value = "Renew partner api-key", nickname = "register", notes = "api-key renew of partner", response = String.class, tags = {})
+    @ApiOperation(value = "Renew partner api-key", nickname = "register", notes = "API will renew api-key and return updated api-key with validity of 6 months if key expires", response = String.class, tags = {})
     @ApiResponses(value = { @ApiResponse(code = 201, message = "Created", response = String.class),
             @ApiResponse(code = 400, message = "Bad Request"), @ApiResponse(code = 401, message = "Unauthorized"),
             @ApiResponse(code = 403, message = "Forbidden"),
