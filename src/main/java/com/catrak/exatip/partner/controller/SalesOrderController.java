@@ -33,7 +33,7 @@ import io.swagger.annotations.ApiResponses;
 
 @RestController
 @RequestMapping("/salesorder")
-@Api(value = "partner", description = "the partner API")
+@Api(value = "partner", description = "the salesorder API")
 public class SalesOrderController {
     private static final Logger log = LoggerFactory.getLogger(SalesOrderController.class);
 
@@ -46,7 +46,7 @@ public class SalesOrderController {
     @Autowired
     private Utility utility;
 
-    @ApiOperation(value = "Create sales order in catrack", nickname = "save", notes = "process and save sales order from fishbowl in catrack", response = String.class, tags = {})
+    @ApiOperation(value = "Save sales order from fishbowl in catrack", nickname = "save", notes = "API will process and save the devices sales order from partner i.e fishbowl based on can", response = String.class, tags = {})
     @ApiResponses(value = { @ApiResponse(code = 201, message = "Created", response = String.class),
             @ApiResponse(code = 400, message = "Bad Request"), @ApiResponse(code = 401, message = "Unauthorized"),
             @ApiResponse(code = 403, message = "Forbidden"),
