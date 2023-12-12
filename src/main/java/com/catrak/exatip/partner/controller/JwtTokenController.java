@@ -2,14 +2,12 @@ package com.catrak.exatip.partner.controller;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -38,13 +36,12 @@ public class JwtTokenController {
     private Utility utility;
 
     @ApiOperation(value = "Provide JWT access token for valid user", notes = "API will return valid jwt token with expiry of 24 hours for valid user based on userName and password")
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Valid user name and password is provided by user. Application returns valid token with  expiration date and time.", response = OAuth2AccessToken.class),
-            @ApiResponse(code = 400, message = "Invalid user name and password is provided by user or it has expired. It is mandatory to provide valid user name along with password other wise application will fail validation."),
-            @ApiResponse(code = 500, message = "Internal run time error has occured.") })
+    @ApiResponses(value = { @ApiResponse(code = 200, message = "Token generated successfully", response = String.class),
+            @ApiResponse(code = 400, message = "Bad Request"), @ApiResponse(code = 401, message = "Unauthorized"),
+            @ApiResponse(code = 403, message = "Forbidden"),
+            @ApiResponse(code = 500, message = "Internal Server Error") })
     @PostMapping("")
     public ResponseEntity<?> generateToken(@RequestHeader(name = "Api-Key") String apiKey) {
-        String requestUUID = UUID.randomUUID().toString();
         log.info("Inside TokenJwtController generateToken");
         Gson g = new Gson();
         Map<String, Object> mandatoryFields = new HashMap<>();
