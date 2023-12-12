@@ -2,6 +2,7 @@ package com.catrak.exatip.partner.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -43,7 +44,9 @@ public class SecurityConfig {
         http.csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeRequests(auth -> auth.antMatchers("/register").permitAll().antMatchers("/token").permitAll()
-                        .antMatchers("/register/renew").permitAll().antMatchers("/swagger-ui/**").permitAll()
+                        .antMatchers("/register/renew").permitAll().antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .antMatchers("/app/**/*.{js,html}").permitAll().antMatchers("/i18n/**").permitAll()
+                        .antMatchers("/content/**").permitAll().antMatchers("/swagger-ui/index.html").permitAll()
                         .anyRequest().authenticated());
         http.addFilterBefore(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
