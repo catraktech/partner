@@ -41,11 +41,6 @@ public class RegisterPartnerController {
     @Autowired
     private Utility utility;
 
-    @PostMapping("/test")
-    public ResponseEntity<?> test() {
-        return new ResponseEntity<>("Hello JWT", HttpStatus.OK);
-    }
-
     @ApiOperation(value = "Register partner with CATrak", nickname = "register", notes = "partner registration with catrak", response = String.class, tags = {})
     @ApiResponses(value = { @ApiResponse(code = 201, message = "Created", response = String.class),
             @ApiResponse(code = 400, message = "Bad Request"), @ApiResponse(code = 401, message = "Unauthorized"),
