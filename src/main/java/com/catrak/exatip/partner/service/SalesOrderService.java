@@ -5,6 +5,7 @@ import com.catrak.exatip.partner.exception.PartnerException;
 
 public interface SalesOrderService {
 
-    SalesOrderInfoDTO save(SalesOrderInfoDTO salesOrderInfoDTO, String requestUUID) throws PartnerException;
+    SalesOrderInfoDTO save(SalesOrderInfoDTO salesOrderInfoDTO, String username, String requestUUID)
+            throws PartnerException;
 
 }

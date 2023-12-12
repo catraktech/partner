@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import org.slf4j.Logger;
@@ -20,6 +21,7 @@ import com.catrak.exatip.commonlib.dto.JsonResponseDTO;
 import com.catrak.exatip.partner.dto.SalesOrderInfoDTO;
 import com.catrak.exatip.partner.exception.PartnerException;
 import com.catrak.exatip.partner.service.SalesOrderService;
+import com.catrak.exatip.partner.util.JwtTokenValidator;
 import com.catrak.exatip.partner.util.Utility;
 import com.google.gson.Gson;
 
@@ -39,6 +41,9 @@ public class SalesOrderController {
     public SalesOrderService salesOrderService;
 
     @Autowired
+    private JwtTokenValidator jwtTokenValidator;
+
+    @Autowired
     private Utility utility;
 
     @ApiOperation(value = "Create sales order in catrack", nickname = "save", notes = "process and save sales order from fishbowl in catrack", response = String.class, tags = {})
@@ -47,7 +52,8 @@ public class SalesOrderController {
             @ApiResponse(code = 403, message = "Forbidden"),
             @ApiResponse(code = 500, message = "Internal Server Error") })
     @PostMapping("")
-    public ResponseEntity<?> save(@ApiParam(value = "") @Valid @RequestBody String salesOrderPayload) {
+    public ResponseEntity<?> save(@ApiParam(value = "") @Valid @RequestBody String salesOrderPayload,
+            HttpServletRequest request) {
 
         String requestUUID = UUID.randomUUID().toString();
 
@@ -66,7 +72,14 @@ public class SalesOrderController {
 
         validate(salesOrderInfoDTO);
 
-        salesOrderInfoDTO = salesOrderService.save(salesOrderInfoDTO, requestUUID);
+        String username = "";
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+            username = jwtTokenValidator.extractUsername(token);
+        }
+
+        salesOrderInfoDTO = salesOrderService.save(salesOrderInfoDTO, username, requestUUID);
 
         String salesOrderNumber = "{" + "\"salesOrderNumber\":" + salesOrderInfoDTO.getHeader().getSalesOrderNumber()
                 + "}";
