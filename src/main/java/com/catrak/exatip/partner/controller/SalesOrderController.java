@@ -32,7 +32,7 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
 @RestController
-@RequestMapping("/sales-order")
+@RequestMapping("/salesorder")
 @Api(value = "partner", description = "the partner API")
 public class SalesOrderController {
     private static final Logger log = LoggerFactory.getLogger(SalesOrderController.class);
