@@ -1,7 +1,6 @@
 package com.catrak.exatip.partner.service.impl;
 
 import java.sql.Timestamp;
-import java.util.Base64;
 import java.util.Calendar;
 import java.util.Optional;
 import java.util.UUID;
@@ -56,27 +55,42 @@ public class RegisterPartnerServiceImpl implements RegisterPartnerService {
         Timestamp expirationTime = new Timestamp(c.getTimeInMillis());
         partnerInfo.setExpirationDateTime(expirationTime);
 
-        String apiKey = UUID.randomUUID().toString();
-        String encodedApiKey = encode(apiKey);
-        partnerInfo.setApiKey(encodedApiKey);
+        partnerInfo.setApiKey(UUID.randomUUID().toString());
 
-        String password = partnerInfo.getPassword();
-        String encodedPassword = encode(password);
-        partnerInfo.setPassword(encodedPassword);
+        partnerInfo.setPassword(partnerInfo.getPassword());
 
         partnerInfoRepository.save(partnerInfo);
-
-        partnerInfo.setApiKey(apiKey);
 
         log.info("RequestUUID: {} Exit RegisterPartnerServiceImpl registerPartner", requestUUID);
 
         return partnerInfo;
     }
 
-    private String encode(String apiKey) {
-        Base64.Encoder enc = Base64.getEncoder();
-        String encodeString = enc.encodeToString(apiKey.getBytes());
-        return encodeString;
+    @Override
+    public PartnerInfo renewApiKey(PartnerInfo partnerInfo, String requestUUID) throws PartnerException {
+
+        log.info("RequestUUID: {} Inside RegisterPartnerServiceImpl renewApiKey", requestUUID);
+
+        Optional<PartnerInfo> partnerOptional = partnerInfoRepository
+                .findByUserNameAndPassword(partnerInfo.getUserName(), partnerInfo.getPassword());
+        if (!partnerOptional.isPresent()) {
+            throw new PartnerException("either username or password is invalid");
+        }
+        partnerInfo = partnerOptional.get();
+
+        partnerInfo.setLastModifiedDatetime(new Timestamp(System.currentTimeMillis()));
+
+        Calendar c = Calendar.getInstance();
+        c.add(Calendar.MONTH, 6);
+        Timestamp expirationTime = new Timestamp(c.getTimeInMillis());
+        partnerInfo.setExpirationDateTime(expirationTime);
+
+        partnerInfo.setApiKey(UUID.randomUUID().toString());
+        partnerInfoRepository.save(partnerInfo);
+
+        log.info("RequestUUID: {} Exit RegisterPartnerServiceImpl renewApiKey", requestUUID);
+
+        return partnerInfo;
     }
 
 }
