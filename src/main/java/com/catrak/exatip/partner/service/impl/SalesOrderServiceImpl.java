@@ -71,17 +71,18 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     public SalesOrderInfoDTO save(SalesOrderInfoDTO salesOrderInfoDTO, String userName, String requestUUID)
             throws PartnerException {
 
-        log.info("RequestUUID: {} Inside SalesOrderServiceImpl save", requestUUID);
+        log.info("RequestUUID: {} started creating sales-order for salesOrderNumber {} ", requestUUID,
+                salesOrderInfoDTO.getHeader().getSalesOrderNumber());
 
         List<SalesOrderInfo> salesOrderInfos = new ArrayList<>();
 
         List<Product> products = productRepository.findAll();
 
-        validateSalesOrderNumberExist(salesOrderInfoDTO);
+        validateSalesOrderNumberExist(salesOrderInfoDTO, requestUUID);
 
-        Organization organization = isCanExistInCatrack(salesOrderInfoDTO);
+        Organization organization = isCanExistInCatrack(salesOrderInfoDTO, requestUUID);
 
-        validateImeiExist(salesOrderInfoDTO);
+        validateImeiExist(salesOrderInfoDTO, requestUUID);
 
         validateDsnExist(salesOrderInfoDTO);
 
@@ -90,6 +91,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
         Optional<PartnerInfo> partnerOptional = partnerInfoRepository.findByUserName(userName);
 
         if (!partnerOptional.isPresent()) {
+            log.error("RequestUUID: {} invalid userName", requestUUID);
             throw new PartnerException("invalid userName");
         }
 
@@ -101,6 +103,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
             salesOrderInfo.setCustomerName(salesOrderInfoDTO.getHeader().getCustomerName());
             validate(s);
             if (s.getImei().toString().length() < 15 || s.getImei().toString().length() >= 16) {
+                log.error("RequestUUID: {} imei must be of 15 digit {} ", requestUUID, s.getImei());
                 throw new PartnerException("imei must be of 15 digit " + s.getImei());
             }
 
@@ -111,22 +114,28 @@ public class SalesOrderServiceImpl implements SalesOrderService {
                     .collect(Collectors.toList());
 
             if (!notPresentElements.isEmpty()) {
+                log.error("RequestUUID: {}  {} are not valid models ", requestUUID, notPresentElements);
                 throw new PartnerException(notPresentElements + " are not valid models");
             }
 
             if (s.getModel().equals("XT2100") && !s.getManufacturer().equals("Sensata")) {
+                log.error("RequestUUID: {} valid manufacturer is sensata for dsn {} ", requestUUID, s.getDsn());
                 throw new PartnerException("valid manufacturer is sensata for dsn " + s.getDsn());
             } else if (s.getModel().equals("ST4500") && !s.getManufacturer().equals("Suntech")) {
+                log.error("RequestUUID: {} valid manufacturer is suntech for dsn {} ", requestUUID, s.getDsn());
                 throw new PartnerException("valid manufacturer is suntech for dsn " + s.getDsn());
             }
 
             if (s.getModel().equals("XT2100") && s.getDsn().toString().length() != 9) {
+                log.error("RequestUUID: {} sensata dsn must be of 9 digit  {} ", requestUUID, s.getDsn());
                 throw new PartnerException("sensata dsn must be of 9 digit " + s.getDsn());
             } else if (s.getModel().equals("ST4500") && s.getDsn().toString().length() != 10) {
+                log.error("RequestUUID: {} suntech dsn must be of 10 digit {} ", requestUUID, s.getDsn());
                 throw new PartnerException("suntech dsn must be of 10 digit " + s.getDsn());
             }
 
             if (!validateProductIds(productIds, s.getCatrakProductID())) {
+                log.error("RequestUUID: {} invalid productId {} ", requestUUID, s.getCatrakProductID());
                 throw new PartnerException("invalid productId " + s.getCatrakProductID());
             }
             salesOrderInfo.setProductId(s.getCatrakProductID());
@@ -139,15 +148,19 @@ public class SalesOrderServiceImpl implements SalesOrderService {
             salesOrderInfo.setLastModifiedDatetime(new Timestamp(System.currentTimeMillis()));
             salesOrderInfos.add(salesOrderInfo);
         });
-        salesOrderInfoRepository.saveAll(salesOrderInfos);
 
-        saveDevice(salesOrderInfoDTO, organization, partnerOptional.get());
+        log.info("RequestUUID: {} saving sales-order in sales-order-info table ", requestUUID);
+        salesOrderInfoRepository.saveAll(salesOrderInfos);
+        log.info("RequestUUID: {} saved sales-order in sales-order-info table ", requestUUID);
+
+        saveDevice(salesOrderInfoDTO, organization, partnerOptional.get(), requestUUID);
 
         log.info("RequestUUID: {} Exit SalesOrderServiceImpl save", requestUUID);
         return salesOrderInfoDTO;
     }
 
-    private void saveDevice(SalesOrderInfoDTO salesOrderInfoDTO, Organization organization, PartnerInfo partnerInfo) {
+    private void saveDevice(SalesOrderInfoDTO salesOrderInfoDTO, Organization organization, PartnerInfo partnerInfo,
+            String requestUUID) {
         Optional<Manufacturer> sensataManufacturer = manufacturerRepository.findByName("SENSATA");
         Optional<Manufacturer> suntechManufacturer = manufacturerRepository.findByName("SUNTECH");
         salesOrderInfoDTO.getDeviceDetails().forEach(s -> {
@@ -170,7 +183,9 @@ public class SalesOrderServiceImpl implements SalesOrderService {
                 deviceInventory.setStatus(pendingStatus);
                 deviceInventory.setLastModifiedUserId(partnerInfo.getPartnerId());
                 deviceInventory.setLastModifiedDatetime(lastModifiedDatetime);
+                log.info("RequestUUID: {} saving sales-order in device_inventory table ", requestUUID);
                 deviceInventoryRepository.save(deviceInventory);
+                log.info("RequestUUID: {} saved sales-order in device_inventory table ", requestUUID);
 
                 Long deviceId = deviceInventory.getDeviceId();
                 Optional<Device> deviceOptional = deviceRepository.findById(deviceId);
@@ -197,36 +212,41 @@ public class SalesOrderServiceImpl implements SalesOrderService {
                     manufacturer.setManufacturerId(ManufacturerIdValues.SUNTECH.id);
                 }
                 device.setManufacturer(manufacturer);
+                log.info("RequestUUID: {} saving sales-order in device table ", requestUUID);
                 deviceRepository.save(device);
+                log.info("RequestUUID: {} saved sales-order in device table ", requestUUID);
             } catch (Exception e) {
+                log.error("RequestUUID: {} exception due to {}", requestUUID, e.getMessage());
                 throw new PartnerException(e.getMessage());
             }
         });
     }
 
-    private void validateSalesOrderNumberExist(SalesOrderInfoDTO salesOrderInfoDTO) {
+    private void validateSalesOrderNumberExist(SalesOrderInfoDTO salesOrderInfoDTO, String requestUUID) {
         Long salesOrderNumber = salesOrderInfoDTO.getHeader().getSalesOrderNumber();
         boolean isSalesOrderNumberExist = salesOrderInfoRepository.existsBySalesOrderNumber(salesOrderNumber);
         if (isSalesOrderNumberExist) {
+            log.error("RequestUUID: {} salesOrderNumber {} already exist", requestUUID, salesOrderNumber);
             throw new PartnerException("salesOrderNumber " + salesOrderNumber + " already exist");
         }
     }
 
-    private Organization isCanExistInCatrack(SalesOrderInfoDTO salesOrderInfoDTO) {
+    private Organization isCanExistInCatrack(SalesOrderInfoDTO salesOrderInfoDTO, String requestUUID) {
         Integer can = salesOrderInfoDTO.getHeader().getCan();
         Optional<Organization> orOptional = organizationRepository.findByCan(can);
         if (!orOptional.isPresent()) {
+            log.error("RequestUUID: {} can {} not exist in catrak", requestUUID, can);
             throw new PartnerException("can " + can + " not exist in catrak");
         }
-        Organization organization = orOptional.get();
-        return organization;
+        return orOptional.get();
     }
 
-    private void validateImeiExist(SalesOrderInfoDTO salesOrderInfoDTO) {
+    private void validateImeiExist(SalesOrderInfoDTO salesOrderInfoDTO, String requestUUID) {
         List<Long> dsns = salesOrderInfoRepository.findAllDsn();
         List<Long> dsnsFB = salesOrderInfoDTO.getDeviceDetails().stream().map(DeviceDetail::getDsn)
                 .collect(Collectors.toList());
         if (dsns.stream().anyMatch(dsnsFB::contains)) {
+            log.error("RequestUUID: {} dsn already exist", requestUUID);
             throw new PartnerException("dsn already exist");
         }
     }
