@@ -155,7 +155,8 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 
         saveDevice(salesOrderInfoDTO, organization, partnerOptional.get(), requestUUID);
 
-        log.info("RequestUUID: {} Exit SalesOrderServiceImpl save", requestUUID);
+        log.info("RequestUUID: {} completed creating sales-order for salesOrderNumber {} ", requestUUID,
+                salesOrderInfoDTO.getHeader().getSalesOrderNumber());
         return salesOrderInfoDTO;
     }
 
