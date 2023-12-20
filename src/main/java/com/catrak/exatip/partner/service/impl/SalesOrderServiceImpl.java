@@ -84,9 +84,9 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 
         validateImeiExist(salesOrderInfoDTO, requestUUID);
 
-        validateDsnExist(salesOrderInfoDTO);
+        validateDsnExist(salesOrderInfoDTO, requestUUID);
 
-        validateTrackingNumberExist(salesOrderInfoDTO);
+        validateTrackingNumberExist(salesOrderInfoDTO, requestUUID);
 
         Optional<PartnerInfo> partnerOptional = partnerInfoRepository.findByUserName(userName);
 
@@ -101,7 +101,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
             salesOrderInfo.setSalesOrderNumber(salesOrderInfoDTO.getHeader().getSalesOrderNumber());
             salesOrderInfo.setCan(salesOrderInfoDTO.getHeader().getCan());
             salesOrderInfo.setCustomerName(salesOrderInfoDTO.getHeader().getCustomerName());
-            validate(s);
+            validate(s, requestUUID);
             if (s.getImei().toString().length() < 15 || s.getImei().toString().length() >= 16) {
                 log.error("RequestUUID: {} imei must be of 15 digit {} ", requestUUID, s.getImei());
                 throw new PartnerException("imei must be of 15 digit " + s.getImei());
@@ -251,20 +251,22 @@ public class SalesOrderServiceImpl implements SalesOrderService {
         }
     }
 
-    private void validateDsnExist(SalesOrderInfoDTO salesOrderInfoDTO) {
+    private void validateDsnExist(SalesOrderInfoDTO salesOrderInfoDTO, String requestUUID) {
         List<Long> imeis = salesOrderInfoRepository.findAllImeis();
         List<Long> imeisFB = salesOrderInfoDTO.getDeviceDetails().stream().map(DeviceDetail::getImei)
                 .collect(Collectors.toList());
         if (imeis.stream().anyMatch(imeisFB::contains)) {
+            log.error("RequestUUID: {} imei already exist", requestUUID);
             throw new PartnerException("imei already exist");
         }
     }
 
-    private void validateTrackingNumberExist(SalesOrderInfoDTO salesOrderInfoDTO) {
+    private void validateTrackingNumberExist(SalesOrderInfoDTO salesOrderInfoDTO, String requestUUID) {
         List<String> trackinNumbers = salesOrderInfoRepository.findAllTrackingNumber();
         List<String> trackinNumbersFB = salesOrderInfoDTO.getDeviceDetails().stream()
                 .map(DeviceDetail::getTrackingNumber).collect(Collectors.toList());
         if (trackinNumbers.stream().anyMatch(trackinNumbersFB::contains)) {
+            log.error("RequestUUID: {} tracking number already exist", requestUUID);
             throw new PartnerException("tracking number already exist");
         }
     }
@@ -273,14 +275,18 @@ public class SalesOrderServiceImpl implements SalesOrderService {
         return productIds.contains(productId);
     }
 
-    private void validate(DeviceDetail deviceDetail) {
+    private void validate(DeviceDetail deviceDetail, String requestUUID) {
         if (deviceDetail.getDsn() == null) {
+            log.error("RequestUUID: {} dsn cannot be null", requestUUID);
             throw new PartnerException("dsn cannot be null");
         } else if (deviceDetail.getImei() == null) {
+            log.error("RequestUUID: {} imei cannot be null", requestUUID);
             throw new PartnerException("imei cannot be null");
         } else if (deviceDetail.getManufacturer() == null) {
+            log.error("RequestUUID: {} manufacturer cannot be null", requestUUID);
             throw new PartnerException("manufacturer cannot be null");
         } else if (deviceDetail.getModel() == null) {
+            log.error("RequestUUID: {} model cannot be null", requestUUID);
             throw new PartnerException("model cannot be null");
         }
     }
